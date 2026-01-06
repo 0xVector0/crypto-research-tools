@@ -74,11 +74,55 @@ def fetch_ohclv_data_test(test_symbol, test_time_frame, test_limit) -> bool:
     
     return True
 
+def fetch_tradable_symbols_test() -> bool:
+
+    """
+    Test the fetch_tradable_symbols function
+
+    Returns:
+        True if the function works
+    """
+
+    for provider in SUPPORTED_SYMBOLS_PROVIDERS:
+        symbols = fetch_tradable_symbols(provider)
+
+        if not isinstance(symbols, list):
+            raise ValueError("Expected a list of symbols")
+
+        if len(symbols) == 0:
+            raise ValueError("No tradable symbols returned")
+
+        if not all(isinstance(s, str) for s in symbols):
+            raise ValueError("Some symbols are not strings")
+
+        if len(symbols) != len(set(symbols)):
+            raise ValueError("Duplicate symbols found")
+
+        common = ["BTCUSDT", "ETHUSDT", "BNBUSDT"]
+        if not any(c in symbols for c in common):
+            print(f"Warning: common symbols {common} not found for provider '{provider}'")
+
+    try:
+        fetch_tradable_symbols("this_provider_does_not_exist")
+        raise AssertionError("Expected ValueError for unsupported provider")
+    except ValueError:
+        pass
+
+    print("✓ fetch_tradable_symbols_test passed")
+    return True
+
 def test_sequence():
     print(f"Doing fetch_ohclv_data function test...")
     tic=timeit.default_timer()
     fetch_ohclv_data_test("BTCUSDT", "5m", 1345)
     toc=timeit.default_timer()
     print(f"In {(toc - tic)*1000} ms")
+    print(f"Doing fetch_tradable_symbols function test...")
+    tic=timeit.default_timer()
+    fetch_tradable_symbols_test()
+    toc=timeit.default_timer()
+    print(f"In {(toc - tic)*1000} ms")
+
+
     
 test_sequence()
